@@ -1,212 +1,165 @@
-/*
-  Script-Writer     : <Jimish Fotariya>
-  CAUTION   : Use this script at your own risk :P [BTW I use this too, so nothing to worry ;) ]
-  PRIVACY   : By using this script, Nothing will affect on your privacy of account.
-  SECURITY  : Your PHOTOS & PASSWORD will be still secure because nothing is related to spoof in this script.
-  
-  if you are still afraid of using this then learn Javascript and DOM to see what I've written.
-  
+/* Instagram followers/following diff (this should've been a gist)
+
+The most humanly possible way that I have found of checking out who does not
+follow you back. I found the original repo, and used it as a starting point.
+Changed many things, improved the efficiency and updated the class name's for
+the necessary DOM selectors. All selectors must be grabbed manually.
+A detailed explanation on how to get it with Instagram's current front end
+design may be found here in a while.
+
+Selectors brief explanation:
+counterList : counters from posts, followers and following section.
+userList : from followers/following pop up users list.
+usernameElement : from username element in pop up lists.
+popUpContentDiv : popUp's content div (for scrolling).
 */
-DEVMOD = false;
-
-function console_clear(e) {
-    !DEVMOD ? console.clear() : e && e != undefined ? console.error(e) : null
+selector = {
+    counterList : "Y8-fY", // from posts, follwers and following counter.
+    userList : "PZuss", // from followers/following pop up users list.
+    usernameElement : "_0imsa", // from username element in pop up lists.
+    popUpContentDiv : "isgrP" // popUp's content div (for scrolling).
 }
 
-selectors = {
-    modalTrigger: 'Y8-fY',
-    unameElement: 'FPmhX',
-    userLi: 'NroHT',
-    closeBtn: 'pxaFn',
-    flwTitle: 'm82CD',
-    objDiv: "j6cq2"
-}
-console_clear();
+// One array per type of users. The diff will be done between them.
+followers = Array();
+following = Array();
 
-console.log('%c Hold-back now, Let me process (Do not touch anything).. ', 'font-size:25px; color: #CD2020');
-console.log('%c Fetching your followers! [wait until finishes] ', 'font-size:25px; color: #70c050;');
-_x = {};
-objDiv = {};
+// From the div list, it gets the elements for followers and following counters.
+followersElement = document.getElementsByClassName(selector.counterList)[1];
+followingElement = document.getElementsByClassName(selector.counterList)[2];
 
-_x.followers = Array();
-_x.following = Array();
-_x.followers_elm = document.getElementsByClassName(selectors.modalTrigger)[1];
-_x.following_elm = document.getElementsByClassName(selectors.modalTrigger)[2];
+// Gets following and followers count.
+maxLenFollowing = followingElement.getElementsByTagName('span')[0].innerText;
+maxLenFollowing = Number(maxLenFollowing.replace(',', ''));
+maxLenFollowers = followersElement.getElementsByTagName('span')[0].innerText;
+maxLenFollowers = Number(maxLenFollowers.replace(',', ''));
 
-maxLenIng = _x.following_elm.getElementsByTagName('span')[0].innerHTML;
-maxLenEr = _x.followers_elm.getElementsByTagName('span')[0].innerHTML;
-
-_x.oldVal = 0;
-_x.repeatCount = 0;
-_x.TimesRepeted = (l) => {
-    if (_x.oldVal != l) {
-        _x.oldVal = l;
-        _x.repeatCount = 0;
-        return false;
+// Event creation
+eventScrollDownFollowers = new CustomEvent(
+    "harvestPopUpFollowers", {
+        bubbles: true,
+        cancelable: true
     }
+);
 
-    _x.repeatCount++;
-    if (_x.repeatCount == 40) {
-        return true;
+eventScrollDownFollowing = new CustomEvent(
+    "harvestPopUpFollowing", {
+        bubbles: true,
+        cancelable: true
     }
-    return false;
-}
+);
 
+// Adding listeners
+document.addEventListener("harvestPopUpFollowers", harvestPopUpFollowers, false);
+document.addEventListener("harvestPopUpFollowing", harvestPopUpFollowing, false);
+
+/* Updates followers array from dom when called 
+(should be used when pop up is active) */
 function updateFollowers() {
-    _x.f = document.getElementsByClassName(selectors.unameElement);
-    for (i = 0; i < _x.f.length; i++) {
-        if (_x.f[i] != undefined) {
-            _x.followers.push(_x.f[i].innerHTML);
+    tmp = document.getElementsByClassName(selector.usernameElement);
+    popup = document.getElementsByClassName(selector.popUpContentDiv);
+    listLength = tmp.length;
+    for (i = 0; i < tmp.length; i++) {
+        if (tmp[0] != undefined) {
+            followers.push(tmp[0].innerHTML);
+            popup[0].children[0].children[0].children[0].remove();
         }
     }
 }
 
+/* Updates following users array */
 function updateFollowing() {
-    _x.f = document.getElementsByClassName(selectors.unameElement);
-
-    for (i = 0; i < _x.f.length; i++) {
-        if (_x.f[i] != undefined) {
-            _x.following.push(_x.f[i].innerHTML);
-        }
-    }
-
-    // for pushing up unfollowers
-    _x.notFollowBack = Array();
-
-    for (i = 0; i < _x.following.length; i++) {
-        if (!_x.followers.includes(_x.following[i])) {
-            _x.notFollowBack.push(_x.following[i]);
-        }
-    }
-
-    _x.f = document.getElementsByClassName(selectors.userLi);
-    document.getElementsByClassName(selectors.flwTitle)[0].innerHTML = "<b style='color:red'>People Not follow back !!</b>";
-
-    for (i in _x.f) {
-        if (_x.f[i] != undefined) {
-            try {
-                let tmpUname = ((_x.f[i]).getElementsByClassName(selectors.unameElement))[0].innerHTML;
-
-                if (_x.notFollowBack.includes(tmpUname)) {
-                    // console.log(_x.f[i]);
-                    // console.log( tmpUname );
-                } else {
-                    // console.log(_x.f[i]);
-                    _x.f[i].style.display = "none";
-                    // document.getElementsByClassName('_539vh')[0].removeChild(_x.f[i]);	
-                    // i--;
-                }
-            } catch (e) {}
+    tmp = document.getElementsByClassName(selector.usernameElement);
+    popup = document.getElementsByClassName(selector.popUpContentDiv);
+    listLength = tmp.length;
+    for (i = 0; i < tmp.length; i++) {
+        if (tmp[0] != undefined) {
+            following.push(tmp[0].innerHTML);
+            popup[0].children[0].children[0].children[0].remove();
         }
     }
 }
 
-//////  this block clicks  on following element
-function checkOutFollowing() {
-    _x.oldVal = 0;
-    _x.repeatCount = 0;
+/* "Core" functionality. It opens up the followers div, and scrolls down,
+pushing them into the followers array, and deletes them visually in order not to
+consume resources.
 
-    // "-".repeat(100);
-    console.log('%c Fetching people you follow! [wait until finishes] ', 'font-size:25px; color: #70c050;');
-
-    _x.following_elm.getElementsByTagName('a')[0].click();
-    setTimeout(function() {
-        objDiv = document.getElementsByClassName(selectors.objDiv)[0];
-        // console.log(objDiv.getElementsByTagName('ul'));
-        flwngscr();
-    }, 1500);
-}
-////// 
-
-_x.eventIng = new CustomEvent(
-    "flwngScrlDwn", {
-        bubbles: true,
-        cancelable: true
-    }
-);
-
-_x.eventEr = new CustomEvent(
-    "flwerScrlDwn", {
-        bubbles: true,
-        cancelable: true
-    }
-);
-
-document.addEventListener("flwerScrlDwn", flwerscr, false);
-document.addEventListener("flwngScrlDwn", flwngscr, false);
-
-function flwerscr() {
-    // try{
-    objDiv = document.getElementsByClassName(selectors.objDiv)[0];
-    divlen = objDiv.getElementsByTagName('ul')[0].childNodes.length;
-
-    // console.log(maxLenEr ,divlen);
-
-    if (maxLenEr > divlen && !_x.TimesRepeted(divlen)) {
-        objDiv.scrollTop = objDiv.scrollHeight;
-        setTimeout(function() {
-            _x.following_elm.dispatchEvent(_x.eventEr);
-        }, 1500)
-    } else {
-        updateFollowers();
-        _x.closeBtn = document.querySelector('.' + selectors.closeBtn);
-        // console.log(_x);
-
-        _x.closeBtn.click();
-        setTimeout(function() {
-            checkOutFollowing();
-        }, 500);
-        return;
-    }
-    // }catch(e){
-    // 		console_clear( e );
-    // 		console.log('%c ERROR :: You\'ve Interrupted Process. Reload page and try again !! ', 'font-size:25px; color: red;');
-    // }
-}
-
-
-function flwngscr() {
+After finishing it calls a similar function to do the same with following users.*/
+function harvestPopUpFollowers() {
     try {
-        objDiv = document.getElementsByClassName(selectors.objDiv)[0];
-        divlen = objDiv.getElementsByTagName('ul')[0].childNodes.length;
-
-        // _x.TimesRepeted(divlen);
-        if (maxLenIng > divlen && !_x.TimesRepeted(divlen)) {
-
-            objDiv.scrollTop = objDiv.scrollHeight;
+        popUpContentDiv = document.getElementsByClassName(selector.popUpContentDiv)[0];
+        console.log(`current/total | ${followers.length}/${maxLenFollowers}`);
+        if (followers.length < maxLenFollowers) {
+            console.log("Entering harvestPopUpFollowers.")
+            popUpContentDiv.scrollTop = popUpContentDiv.scrollHeight;
             setTimeout(function() {
-                _x.following_elm.dispatchEvent(_x.eventIng);
+                followersElement.dispatchEvent(eventScrollDownFollowers);
             }, 1500)
-
+            console.log("Dispatched eventScrollDownFollowers.")
+            console.log("Updating followers after dispatch.");
+            updateFollowers();
         } else {
-
-            updateFollowing();
-            console_clear();
-            "-".repeat(100);
-            console.log('%c Here is all what you Wanted. (People who don\'t follow you back)!!', 'font-size:25px; color: red');
-            "-".repeat(100);
-            // alert("Checkout pop-up");
-
-            for (let i = 0; i < _x.notFollowBack.length; i++) {
-                console.log((i + 1) + "> %chttps://instagram.com/" + _x.notFollowBack[i], 'font-size:16px;color:blue;text-decoration:underline');
-            }
-
-            console.log('%c Checkout Popup !! ', 'font-size:25px; color: #70c050;');
-            
-            !DEVMOD ? _x = {} : null;
-            return;
+            console.log("Final followers update.");
+            updateFollowers();
+            followingElement.getElementsByTagName('a')[0].click();
+            setTimeout(function() {
+                harvestPopUpFollowing();
+            }, 1500);
         }
     } catch (e) {
-        console_clear(e);
-        console.log('%c ERROR :: You\'ve Interrupted Process. Reload page and try again !! ', 'font-size:25px; color: red;');
+        console.log(e);
     }
 }
-//////  this block clicks  on followers element
-_x.followers_elm.getElementsByTagName('a')[0].click();
-setTimeout(function() {
-    _x.tempContinude = 0;
-    // console.log(objDiv.getElementsByTagName('ul'));
-    flwerscr();
-}, 1500);
 
-////// 
+/* From the people I follow, add the ones that don't follow me. */
+function getUnfollowers() {
+    notFollowingBack = Array();
+    for (i = 0; i < following.length; i++) {
+        if (!followers.includes(following[i])) {
+            notFollowingBack.push(following[i]);
+        }
+    }
+
+    console.log("People not following back");
+    for (let i = 0; i < notFollowingBack.length; i++) {
+        console.log((i + 1) + ") https://instagram.com/" + notFollowingBack[i]);
+    }
+}
+
+/* It opens up the following div, and scrolls down, pushing users into the
+following array, and deletes them visually in order not to consume resources. 
+
+After finishing, it prints out who are not following that profile. */
+function harvestPopUpFollowing() {
+    try {
+        popUpContentDiv = document.getElementsByClassName(selector.popUpContentDiv)[0];
+        console.log(`current/total | ${following.length}/${maxLenFollowing}`);
+        if (following.length < maxLenFollowing) {
+            console.log("Entering harvestPopUpFollowing")
+            popUpContentDiv.scrollTop = popUpContentDiv.scrollHeight;
+            setTimeout(function() {
+                followingElement.dispatchEvent(eventScrollDownFollowing);
+            }, 1500)
+            console.log("Dispatched eventScrollDownFollowing.")
+            console.log("Updating following after dispatch.");
+            updateFollowing();
+        } else {
+            console.log("Final following update.");
+            updateFollowing();
+            setTimeout(function() {
+                getUnfollowers();
+            }, 1500);
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+/* Main alike
+It starts simulating a click on the followers list, and waits for it before
+trying to call harvestPopUpFollowers.
+*/
+followersElement.getElementsByTagName('a')[0].click();
+setTimeout(function() {
+    harvestPopUpFollowers();
+}, 1500);
